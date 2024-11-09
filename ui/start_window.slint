@@ -1,46 +1,126 @@
-import { Button, TextEdit, GridBox } from "std-widgets.slint";
+import { Button, TextEdit, GridBox, VerticalBox, HorizontalBox, StandardButton } from "std-widgets.slint";
+
+component CalcButton inherits Rectangle {
+    in-out property <string> text;
+    property <bool> hover <=> ta.has-hover;
+    callback click();
+    width: 5rem;
+    height: 5rem;
+    border-radius: 0.7rem;
+    Text {
+        text: text;
+        font-size: 1.3rem;
+        font-weight: 800;
+    }
+
+    ta := TouchArea {
+        height: 5rem;
+        width: 5rem;
+        clicked => {
+            if text != "" {
+                click()
+            }
+        }
+    }
+
+    states [
+        nonexistent when root.text == "": {
+            background: transparent;
+        }
+        active when !root.hover: {
+            background: #cfcfcf;
+            drop-shadow-offset-y: 4px;
+            drop-shadow-color: #cacaca;
+            drop-shadow-blur: 4px;
+            in {
+                animate background { duration: 200ms; }
+                animate drop-shadow-offset-y { duration: 200ms; }
+            }
+            out {
+                animate background { duration: 200ms; }
+                animate drop-shadow-offset-y { duration: 200ms; }
+            }
+        }
+        active-hover when root.hover: {
+            background: #bebebe;
+            drop-shadow-offset-y: 2px;
+            drop-shadow-color: #cacaca;
+            drop-shadow-blur: 4px;
+            in {
+                animate background { duration: 200ms; }
+                animate drop-shadow-offset-y { duration: 200ms; }
+            }
+            out {
+                animate background { duration: 200ms; }
+                animate drop-shadow-offset-y { duration: 200ms; }
+            }
+        }
+    ]
+}
 
 export component AppWindow inherits Window {
     title: "Calculator";
-    in-out property<string> textarea: ""; // Proprietate pentru afișarea textului în zona de text
-    callback add_to_text_area(string, string); // Callback pentru adăugarea textului în zona de text
+    background: #e9e9e9;
+    in-out property <string> textarea: ""; // Proprietate pentru afișarea textului în zona de text
+    callback handle_click(string); // Callback pentru adăugarea textului în zona de text
+    FocusScope {
+        VerticalLayout {
+            padding: 2rem;
+            Rectangle {
+                height: 30px;
+            }
 
-    GridLayout {
+            text_box := Text {
+                width: 390px;
+                height: 40px;
+                text: textarea; // Leagă `textarea` la textul afișat în acest `TextEdit`
+                horizontal-alignment: right;
+                font-size: 30px;
+            }
 
-        // TASK: Creează un TextEdit pentru zona de text a calculatorului.
-        // HINT: Setează lățimea la 600px și înălțimea la 200px.
-        text_box := TextEdit {
-            // TODO
-            text: textarea; // Leagă `textarea` la textul afișat în acest `TextEdit`
-        }
-
+            Rectangle {
+                height: 10px;
+            }
         // TASK: Adaugă primul rând de butoane pentru cifre și operatori într-un nou GridLayout.
         // HINT: Fiecare buton va fi într-un `Rectangle` pentru a avea dimensiuni și fundal personalizate. Folosește `Button` pentru acțiune.
 
-        GridLayout {
-
-            row: 1;
-
             // TASK: Creează butonul pentru cifra "1".
             // HINT: Folosește un `Rectangle` pentru dimensiuni și un `Text` pentru afișarea cifrei. Folosește `Button` pentru a înregistra acțiunea.
-            Rectangle {
-               // TODO
-                Button {
-                   // TODO
+            HorizontalLayout {
+                spacing: 9rem;
+                VerticalLayout {
+                    spacing: 10px;
+                    for line in [["1", "2", "3"], ["4", "5", "6"], ["7", "8", "9"], ["", "0", "."]]: HorizontalLayout {
+                        spacing: 1rem;
+                        width: 10rem;
+                        for char in line: CalcButton {
+                            text: char;
+                            click => {
+                                handle_click(char)
+                            }
+                        }
+                    }
+                }
 
-                   // Callback pentru adăugarea cifrei "1" în zona de text și actualizarea acesteia
-                    clicked => { add_to_text_area(text-box.text, "1") }
+                VerticalLayout {
+                    spacing: 10px;
+                    width: 8rem;
+                    for line in [["+", "-"], ["*", "/"], ["(", ")"], ["=", "C"]]: HorizontalLayout {
+                        spacing: 10px;
+                        for char in line: CalcButton {
+                            text: char;
+                            click => {
+                                handle_click(char)
+                            }
+                        }
+                    }
                 }
             }
-
-            // TASK: Creează butonul pentru cifra "2", urmând aceleași instrucțiuni ca pentru butonul "1".
-
-            // TASK: Creează butonul pentru cifra "3".
-
-            // TASK: Creează butonul pentru operatorul "+".
         }
 
-        // TASK: Adaugă alte rânduri pentru cifrele și operatorii rămași, similar cu primul rând.
-        // HINT: Creează noi `GridLayout` și adaugă butoane pentru cifrele "4" până la "9", operatorii "*", "-", "/", ".", "Clear" și "=".
+        key-pressed(event) => {
+            handle_click(event.text);
+            accept
+        }
     }
 }
